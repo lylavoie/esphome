@@ -9,14 +9,10 @@ static const char *const TAG = "nixie.number";
 void NixieNumberComponent::setup() {
   ESP_LOGCONFIG(TAG, "Setting up nixie number...");
   // initialize pins
-  this->_zero_pin->setup();
-  this->_zero_pin->digital_write(false);
-  this->_one_pin->setup();
-  this->_one_pin->digital_write(false);
-  this->_two_pin->setup();
-  this->_two_pin->digital_write(false);
-  this->_three_pin->setup();
-  this->_three_pin->digital_write(false);
+  for (auto *pin : this->_pins) {
+    pin->setup();
+    pin->digital_write(false);
+  }
 }  // NixieNumberComponent::setup()
 
 void NixieNumberComponent::dump_config() {
@@ -48,35 +44,10 @@ void NixieNumberComponent::control(float value) {
 void NixieNumberComponent::update() { this->publish_state(this->_my_target_number); }
 
 void NixieNumberComponent::_set_outputs(uint8_t value) {
-  switch (value) {
-    case 0:
-      this->_zero_pin->digital_write(true);
-      this->_one_pin->digital_write(false);
-      this->_two_pin->digital_write(false);
-      this->_three_pin->digital_write(false);
-      break;
-    case 1:
-      this->_zero_pin->digital_write(false);
-      this->_one_pin->digital_write(true);
-      this->_two_pin->digital_write(false);
-      this->_three_pin->digital_write(false);
-      break;
-    case 2:
-      this->_zero_pin->digital_write(false);
-      this->_one_pin->digital_write(false);
-      this->_two_pin->digital_write(true);
-      this->_three_pin->digital_write(false);
-      break;
-    case 3:
-      this->_zero_pin->digital_write(false);
-      this->_one_pin->digital_write(false);
-      this->_two_pin->digital_write(false);
-      this->_three_pin->digital_write(true);
-      break;
-    default:
-      ESP_LOGE(TAG, "Number out of range!");
-      break;
-  }
+  static auto previous_value = 0;
+  this->_pins[previous_value]->digital_write(false);
+  previous_value = value;
+  this->_pins[value]->digital_write(true);
 }  // NixieNumberComponent::_set_outputs(uint8_t value)
 
 }  // namespace nixie_number
