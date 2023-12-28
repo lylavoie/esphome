@@ -19,6 +19,9 @@ void NixieNumberComponent::dump_config() {
   LOG_NUMBER("", "Nixie Number", this);
   ESP_LOGCONFIG(TAG, "  Count Back: %s", YESNO(this->_count_back));
   ESP_LOGCONFIG(TAG, "  Count Back Speed: %d", this->_count_back_speed);
+  ESP_LOGCONFIG(TAG, "  Output Pins:");
+  for (auto pin : this->_pins)
+    LOG_PIN("    Pin: ", pin);
   LOG_UPDATE_INTERVAL(this);
 }  // NixieNumberComponent::dump_config()
 
