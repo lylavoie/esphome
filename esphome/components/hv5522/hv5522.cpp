@@ -1,5 +1,8 @@
 #include "hv5522.h"
 #include "esphome/core/log.h"
+#include <sstream>
+#include <string>
+#include <iomanip>
 
 namespace esphome {
 namespace hv5522 {
@@ -44,10 +47,12 @@ void HV5522component::digital_write_(uint16_t pin, bool value) {
 }
 
 void HV5522GPIOcomponent::write_gpio() {
-  ESP_LOGV(TAG, "Shifting out %u bytes using GPIO", this->chip_count_ * 4);
+  ESP_LOGV(TAG, "Shifting out %u bytes using GPIO...", this->output_bytes_.size());
   for (auto byte = this->output_bytes_.rbegin(); byte != this->output_bytes_.rend(); byte++) {
+    ESP_LOGV(TAG, "  Writing byte: 0x%02X", *byte);
     for (int8_t i = 7; i >= 0; i--) {
       bool bit = (*byte >> i) & 0x01;
+      ESP_LOGVV(TAG, "    Writing bit: 0x%X", bit);
       this->data_pin_->digital_write(bit);
       this->clock_pin_->digital_write(false);
       this->clock_pin_->digital_write(true);
@@ -58,8 +63,9 @@ void HV5522GPIOcomponent::write_gpio() {
 
 #ifdef USE_SPI
 void HV5522SPIcomponent::write_gpio() {
-  ESP_LOGV(TAG, "Writing out %u bytes via SPI bus", this->chip_count_ * 4);
+  ESP_LOGV(TAG, "Writing out %u bytes via SPI bus", this->output_bytes_.size());
   for (auto byte = this->output_bytes_.rbegin(); byte != this->output_bytes_.rend(); byte++) {
+    ESP_LOGV(TAG, "  Writing byte: 0x%02X", *byte);
     this->enable();
     this->transfer_byte(*byte);
     this->disable();
@@ -69,7 +75,7 @@ void HV5522SPIcomponent::write_gpio() {
 #endif
 
 void HV5522component::write_gpio() {
-  // pulse latch to activate new values
+  ESP_LOGV(TAG, "Pulsing the latch pin to set registers.");
   this->latch_pin_->digital_write(true);
   this->latch_pin_->digital_write(false);
 }

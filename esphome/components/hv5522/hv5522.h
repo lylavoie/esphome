@@ -3,6 +3,7 @@
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
 #include "esphome/core/helpers.h"
+#include "esphome/core/defines.h"
 
 #ifdef USE_SPI
 #include "esphome/components/spi/spi.h"
@@ -16,13 +17,13 @@ namespace hv5522 {
 class HV5522component : public Component {
  public:
   HV5522component() = default;
-  void setup() override{};
+  void setup() override = 0;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::IO; }
   void set_latch_pin(GPIOPin *pin) { this->latch_pin_ = pin; }
   void set_chip_count(uint8_t count) {
     this->chip_count_ = count;
-    this->output_bytes_.reserve(count * 4);
+    this->output_bytes_.resize(count * 4);
   }
 
  protected:
