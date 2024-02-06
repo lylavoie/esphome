@@ -7,23 +7,17 @@ from esphome.const import (
     CONF_SPI_ID,
     CONF_NUMBER,
     CONF_INVERTED,
-    CONF_DATA_PIN,
-    CONF_CLOCK_PIN,
     CONF_OUTPUT,
     CONF_COUNT,
 )
-from esphome.core import EsphomeError
 
 MULTI_CONF = True
 
 CODEOWNERS = ["@lylavoie"]
+DEPENDENCIES = ["spi"]
 
 HV5522_ns = cg.esphome_ns.namespace("hv5522")
-HV5522component = HV5522_ns.class_("HV5522component", cg.Component)
-HV5522GPIOcomponent = HV5522_ns.class_("HV5522GPIOcomponent", HV5522component)
-HV5522SPIcomponent = HV5522_ns.class_(
-    "HV5522SPIcomponent", HV5522component, spi.SPIDevice
-)
+HV5522component = HV5522_ns.class_("HV5522component", cg.Component, spi.SPIDevice)
 HV5522Pin = HV5522_ns.class_(
     "HV5522Pin", cg.GPIOPin, cg.Parented.template(HV5522component)
 )
@@ -34,16 +28,7 @@ CONF_LATCH_PIN = "latch_pin"
 CONFIG_SCHEMA = cv.Any(
     cv.Schema(
         {
-            cv.Required(CONF_ID): cv.declare_id(HV5522GPIOcomponent),
-            cv.Required(CONF_DATA_PIN): pins.gpio_output_pin_schema,
-            cv.Required(CONF_CLOCK_PIN): pins.gpio_output_pin_schema,
-            cv.Required(CONF_LATCH_PIN): pins.gpio_output_pin_schema,
-            cv.Optional(CONF_COUNT, default=1): cv.int_range(min=1, max=4),
-        }
-    ).extend(cv.COMPONENT_SCHEMA),
-    cv.Schema(
-        {
-            cv.Required(CONF_ID): cv.declare_id(HV5522SPIcomponent),
+            cv.Required(CONF_ID): cv.declare_id(HV5522component),
             cv.Required(CONF_LATCH_PIN): pins.gpio_output_pin_schema,
             cv.Optional(CONF_COUNT, default=1): cv.int_range(min=1, max=4),
         }
@@ -62,15 +47,7 @@ CONFIG_SCHEMA = cv.Any(
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-    if CONF_DATA_PIN in config:
-        data_pin = await cg.gpio_pin_expression(config[CONF_DATA_PIN])
-        cg.add(var.set_data_pin(data_pin))
-        clock_pin = await cg.gpio_pin_expression(config[CONF_CLOCK_PIN])
-        cg.add(var.set_clock_pin(clock_pin))
-    elif CONF_SPI_ID in config:
-        await spi.register_spi_device(var, config)
-    else:
-        raise EsphomeError("Not supported")
+    await spi.register_spi_device(var, config)
     latch_pin = await cg.gpio_pin_expression(config[CONF_LATCH_PIN])
     cg.add(var.set_latch_pin(latch_pin))
     cg.add(var.set_chip_count(config[CONF_COUNT]))
