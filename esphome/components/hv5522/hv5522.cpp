@@ -1,8 +1,8 @@
 #include "hv5522.h"
 #include "esphome/core/log.h"
-#include <sstream>
-#include <string>
-#include <iomanip>
+// #include <sstream>
+// #include <string>
+// #include <iomanip>
 
 namespace esphome {
 namespace hv5522 {
@@ -14,40 +14,33 @@ void HV5522component::setup() {
   this->spi_setup();
   this->latch_pin_->setup();
   this->latch_pin_->digital_write(false);
-  this->write_gpio();
+  this->write_bytes();
 }
 
 void HV5522component::dump_config() { ESP_LOGCONFIG(TAG, "HV5522:"); }
 
 void HV5522component::digital_write_(uint16_t pin, bool value) {
-  if (pin >= this->chip_count_ * 4 * 8) {
+  if (pin > this->max_pins_ * 8) {
     ESP_LOGE(TAG, "Pin %u is out of range! Maximum pin number with %u chips is %u.", pin, this->chip_count_,
-             (this->chip_count_ * 4 * 8) - 1);
+             (this->max_pins_ * 8));
     return;
   }
   if (value) {
-    this->output_bytes_[pin / 8] |= (1 << (pin % 8));
+    this->output_bytes_[(this->max_pins_) - (pin / 8) - 1] |= (1 << (pin % 8));
   } else {
-    this->output_bytes_[pin / 8] &= ~(1 << (pin % 8));
+    this->output_bytes_[(this->max_pins_) - (pin / 8) - 1] &= ~(1 << (pin % 8));
   }
-  this->write_gpio();
+  this->write_bytes();
 }
 
-void HV5522component::write_gpio() {
-  ESP_LOGV(TAG, "Writing out %u bytes via SPI bus", this->output_bytes_.size());
-  static std::vector<uint8_t> bytes;
-  bytes = this->output_bytes_;
-
-  // for (auto byte = this->output_bytes_.rbegin(); byte != this->output_bytes_.rend(); byte++) {
-  //   ESP_LOGV(TAG, "  Writing byte: 0x%02X", *byte);
-  //   this->enable();
-  //   this->transfer_byte(*byte);
-  //   this->disable();
-  // }
-
-  std::reverse(bytes.begin(), bytes.end());
+void HV5522component::write_bytes() {
+#ifdef ESP_LOGV
+  ESP_LOGV(TAG, "Writing out %u bytes via SPI bus in this order:", this->output_bytes_.size());
+  for (auto byte = this->output_bytes_.rbegin(); byte != this->output_bytes_.rend(); ++byte)
+    ESP_LOGV(TAG, "  0x%02X", *byte);
+#endif
   this->enable();
-  this->write_array(bytes);
+  this->write_array(this->output_bytes_);
   this->disable();
   ESP_LOGV(TAG, "Pulsing the latch pin to set registers.");
   this->latch_pin_->digital_write(true);
