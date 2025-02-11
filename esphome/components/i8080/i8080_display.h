@@ -105,12 +105,7 @@ class I8080ST7789V : public I8080Display {
   I8080ST7789V() : I8080Display(240, 320, 8, 8) {}
 
  protected:
-  bool init_chipset_() override {
-    ESP_LOGD(TAG, "Setting up ST7789V chipset using I8080 bus");
-    if (esp_lcd_new_panel_st7789(this->i80_io_handle_, &this->i80_panel_config_, &this->i80_panel_handle_) != ESP_OK)
-      return false;
-    return true;
-  }
+  bool init_chipset_() override;
 };
 
 //-----------   NT35510 display --------------
@@ -119,12 +114,7 @@ class I8080NT35510 : public I8080Display {
   I8080NT35510() : I8080Display(240, 320, 8, 8) {}
 
  protected:
-  bool init_chipset_() override {
-    ESP_LOGD(TAG, "Setting up NT35510 chipset using I8080 bus");
-    if (esp_lcd_new_panel_nt35510(this->i80_io_handle_, &this->i80_panel_config_, &this->i80_panel_handle_) != ESP_OK)
-      return false;
-    return true;
-  }
+  bool init_chipset_() override;
 };
 
 }  // namespace i8080
