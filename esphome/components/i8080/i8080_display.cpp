@@ -258,7 +258,7 @@ bool I8080Display::color_trans_done_handler(esp_lcd_panel_io_handle_t panel_io, 
 }
 
 //-----------   ST7789V display --------------
-bool I8080ST7789V::init_chipset_() override {
+bool I8080ST7789V::init_chipset_() {
   ESP_LOGD(TAG, "Setting up ST7789V chipset using I8080 bus");
   if (esp_lcd_new_panel_st7789(this->i80_io_handle_, &this->i80_panel_config_, &this->i80_panel_handle_) != ESP_OK)
     return false;
@@ -266,7 +266,7 @@ bool I8080ST7789V::init_chipset_() override {
 }
 
 //-----------   NT35510 display --------------
-bool I8080NT35510::init_chipset_() override {
+bool I8080NT35510::init_chipset_() {
   ESP_LOGD(TAG, "Setting up NT35510 chipset using I8080 bus");
   if (esp_lcd_new_panel_nt35510(this->i80_io_handle_, &this->i80_panel_config_, &this->i80_panel_handle_) != ESP_OK)
     return false;
