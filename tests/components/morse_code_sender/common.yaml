@@ -1,0 +1,18 @@
+switch:
+  - platform: template
+    id: morse_key
+    optimistic: true
+
+morse_code_sender:
+  id: morse
+  switch_id: morse_key
+  wpm: 20
+
+esphome:
+  on_boot:
+    - morse_code_sender.send_keys:
+        id: morse
+        keys: "... --- ..."
+    - morse_code_sender.send_keys:
+        id: morse
+        keys: !lambda 'return std::string(".-");'
